@@ -48,6 +48,7 @@
                         <template v-if="scope.row.status === 1">
                             <el-button size="mini" type="primary" @click="jump(`metadata/${scope.row.id}`)">元数据</el-button>
                             <el-button size="mini" type="primary" @click="jump(`preview/${scope.row.id}`)">预览</el-button>
+                            <el-button size="mini" type="success" @click.native.prevent="downloadFile(scope.row.fileName)">下载</el-button>
                             <el-button size="mini" type="danger" @click.native.prevent="deleteGeoFile(scope.row.id)">删除</el-button>
                         </template>
                         <template v-else>
@@ -76,6 +77,7 @@
 <script>
 import { page } from '@/api/geo-file'
 import { deleteGeoFile } from '@/api/geo-file'
+import { downloadGeoFile } from '@/api/geo-file'
 
 export default {
     name: 'GeoFileListView',
@@ -142,7 +144,20 @@ export default {
         },
         jump(path){
             this.$router.push(path)
+        },
+        async downloadFile(fileName) {
+        try {
+            const response = await downloadGeoFile(fileName)
+            const blob = new Blob([response.data])
+            const link = document.createElement('a')
+            link.href = URL.createObjectURL(blob)
+            link.download = fileName
+            link.click()
+            URL.revokeObjectURL(link.href)
+        } catch (error) {
+            this.$message.error("文件下载失败")
         }
+    }
     }
 }
 </script>
@@ -162,3 +177,28 @@ export default {
     text-align: right;
 }
 </style>
+
+
+async downloadFile(fileName) {
+    try {
+        const response = await downloadGeoFile(fileName)
+        const blob = new Blob([response.data])
+        const link = document.createElement('a')
+        link.href = URL.createObjectURL(blob)
+        link.download = fileName
+        link.click()
+        URL.revokeObjectURL(link.href)
+
+        // 下载成功提示
+        this.$message({
+            message: '文件下载成功！',
+            type: 'success'
+        })
+    } catch (error) {
+        // 下载失败提示
+        this.$message({
+            message: '文件下载失败，请重试',
+            type: 'error'
+        })
+    }
+}

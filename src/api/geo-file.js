@@ -61,3 +61,9 @@ export function isSupport(fileName){
     })
 }
 
+export function downloadGeoFile(fileName) {
+    return _axios.get('/geo-file/download', {
+        params: { fileName },
+        responseType: 'blob' 
+    })
+}
